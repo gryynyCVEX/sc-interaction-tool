@@ -27,7 +27,7 @@ const WalletConnectButton: React.FC = () => {
       }
     };
 
-    const handleChainChanged = async (chainId: string) => {
+    const handleChainChanged = async (_chainId: string) => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const network = await provider.getNetwork();
       setNetworkName(network.name);

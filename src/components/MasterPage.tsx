@@ -69,7 +69,7 @@ const MasterPage: React.FC = () => {
     setResults((prevResults) => ({ ...prevResults, [func.name]: null })); // Clear previous results
 
     try {
-      const args = func.inputs.map((input: any, index: number) => {
+      const args = func.inputs.map((_input: any, index: number) => {
         const value = (
           document.getElementById(`${func.name}-${index}`) as HTMLInputElement
         ).value;
@@ -82,14 +82,14 @@ const MasterPage: React.FC = () => {
         const receipt = await result.wait();
         setResults((prevResults) => ({
           ...prevResults,
-          [func.name]: JSON.stringify(receipt, (key, value) =>
+          [func.name]: JSON.stringify(receipt, (_key, value) =>
             typeof value === "bigint" ? value.toString() : value,
           2),
         }));
       } else {
         setResults((prevResults) => ({
           ...prevResults,
-          [func.name]: JSON.stringify(result, (key, value) =>
+          [func.name]: JSON.stringify(result, (_key, value) =>
             typeof value === "bigint" ? value.toString() : value,
           2),
         }));
