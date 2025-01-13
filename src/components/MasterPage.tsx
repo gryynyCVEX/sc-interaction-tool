@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { ethers } from "ethers";
+import { useAppKitProvider } from '@reown/appkit/react';
+import { ethers, BrowserProvider } from "ethers";
 import ABIUploader from "./ABIUploader";
-import WalletConnectButton from "./WalletConnectButton";
+// import WalletConnectButton from "./WalletConnectButton";
 import {
   Container,
   Box,
@@ -24,12 +25,21 @@ import 'highlight.js/styles/github.css';
 const MasterPage: React.FC = () => {
   const [abi, setAbi] = useState<any[]>([]);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [contractAddress, setContractAddress] = useState<string>("");
+  const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [results, setResults] = useState<{ [key: string]: any }>({});
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+  const { walletProvider } = useAppKitProvider('eip155');
+
+  useEffect(() => {
+    console.log('walletProvider', walletProvider);
+    if (walletProvider) {
+      const ethersProvider = new BrowserProvider(walletProvider as any);
+      setProvider(ethersProvider);
+    }
+  }, [walletProvider]);
 
   const isErrorWithMessage = (error: unknown): error is Error => {
     return (
@@ -185,15 +195,6 @@ const MasterPage: React.FC = () => {
     setContractAddress("");
   };
 
-  useEffect(() => {
-    if (window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      setProvider(provider);
-    } else {
-      setWarning("No Ethereum provider found. Please install MetaMask.");
-    }
-  }, []);
-
   return (
     <Container>
       <AppBar position="static" sx={{ marginBottom: 3 }}>
@@ -201,7 +202,8 @@ const MasterPage: React.FC = () => {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Ethereum Smart Contract Interaction Tool
           </Typography>
-          <WalletConnectButton />
+          {/* <WalletConnectButton /> */}
+          <appkit-button />
         </Toolbar>
       </AppBar>
       <Box sx={{ padding: 2 }}>
