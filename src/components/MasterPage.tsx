@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAppKitProvider } from '@reown/appkit/react';
-import { ethers, BrowserProvider, isAddress } from "ethers";
+import { ethers, BrowserProvider } from "ethers";
 import ABIUploader from "./ABIUploader";
 // import WalletConnectButton from "./WalletConnectButton";
 import {
@@ -24,7 +24,6 @@ import 'highlight.js/styles/github.css';
 
 const MasterPage: React.FC = () => {
   const [abi, setAbi] = useState<any[]>([]);
-  const [contract, setContract] = useState<ethers.Contract | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [contractAddress, setContractAddress] = useState<string>("");
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
@@ -41,17 +40,6 @@ const MasterPage: React.FC = () => {
       setProvider(null);
     }
   }, [walletProvider]);
-
-  useEffect(() => {
-    if (provider && abi.length > 0 && isAddress(contractAddress)) {
-      provider.getSigner().then((signer) => {
-        const contractInstance = new ethers.Contract(contractAddress, abi, signer);
-        setContract(contractInstance);
-      });
-    } else {
-      setContract(null);
-    }
-  }, [provider, abi, contractAddress]);
 
   const isErrorWithMessage = (error: unknown): error is Error => {
     return (
@@ -76,9 +64,18 @@ const MasterPage: React.FC = () => {
     console.log("Calling function", func.name);
     console.log("Func", func);
     console.log("ABI", abi);
-    console.log("Contract", contract);
     console.log("Provider", provider);
 
+    const signer = await provider?.getSigner();
+    if (!signer) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [func.name]: "Please connect your wallet to interact with this contract",
+      }));
+      return;
+    }
+    console.log("Signer", signer);
+    const contract = new ethers.Contract(contractAddress, abi, signer);
     if (!contract) {
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -86,6 +83,7 @@ const MasterPage: React.FC = () => {
       }));
       return;
     }
+    console.log("Contract", contract);
     setLoading((prevLoading) => ({ ...prevLoading, [func.name]: true }));
     setErrors((prevErrors) => ({ ...prevErrors, [func.name]: null }));
     setResults((prevResults) => ({ ...prevResults, [func.name]: null })); // Clear previous results
@@ -201,7 +199,6 @@ const MasterPage: React.FC = () => {
 
   const handleReset = () => {
     setAbi([]);
-    setContract(null);
     setResults({});
     setWarning(null);
     setContractAddress("");
