@@ -6,10 +6,18 @@ import { EthersAdapter } from '@reown/appkit-adapter-ethers'
 import { arbitrum, arbitrumSepolia } from '@reown/appkit/networks'
 import { projectId } from "./config";
 
+const metadata = {
+  name: 'SCIT',
+  description: 'SCIT is a tool for interacting with smart contracts on the blockchain.',
+  url: 'https://sc-interaction-tool.onrender.com/', // origin must match your domain & subdomain
+  icons: ['https://sc-interaction-tool.onrender.com/logo512.png']
+}
+
 createAppKit({
   adapters: [new EthersAdapter()],
   networks: [arbitrum, arbitrumSepolia],
   projectId,
+  metadata,
   features: {
     analytics: false
   }

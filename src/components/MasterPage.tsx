@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAppKitProvider } from '@reown/appkit/react';
-import { ethers, BrowserProvider } from "ethers";
+import { ethers, BrowserProvider, isAddress } from "ethers";
 import ABIUploader from "./ABIUploader";
 // import WalletConnectButton from "./WalletConnectButton";
 import {
@@ -34,12 +34,24 @@ const MasterPage: React.FC = () => {
   const { walletProvider } = useAppKitProvider('eip155');
 
   useEffect(() => {
-    console.log('walletProvider', walletProvider);
     if (walletProvider) {
       const ethersProvider = new BrowserProvider(walletProvider as any);
       setProvider(ethersProvider);
+    } else {
+      setProvider(null);
     }
   }, [walletProvider]);
+
+  useEffect(() => {
+    if (provider && abi.length > 0 && isAddress(contractAddress)) {
+      provider.getSigner().then((signer) => {
+        const contractInstance = new ethers.Contract(contractAddress, abi, signer);
+        setContract(contractInstance);
+      });
+    } else {
+      setContract(null);
+    }
+  }, [provider, abi, contractAddress]);
 
   const isErrorWithMessage = (error: unknown): error is Error => {
     return (
@@ -58,15 +70,15 @@ const MasterPage: React.FC = () => {
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const address = e.target.value;
     setContractAddress(address);
-    if (provider && abi.length > 0) {
-      provider.getSigner().then((signer) => {
-        const contractInstance = new ethers.Contract(address, abi, signer);
-        setContract(contractInstance);
-      });
-    }
   };
 
   const handleFunctionCall = async (func: any) => {
+    console.log("Calling function", func.name);
+    console.log("Func", func);
+    console.log("ABI", abi);
+    console.log("Contract", contract);
+    console.log("Provider", provider);
+
     if (!contract) {
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -119,7 +131,7 @@ const MasterPage: React.FC = () => {
   };
 
   const renderComponents = () => {
-    return abi.map((item) => {
+    return abi.map((item, idx) => {
       if (item.type === "function") {
         const functionType =
           item.stateMutability === "view" || item.stateMutability === "pure"
@@ -127,7 +139,7 @@ const MasterPage: React.FC = () => {
             : "Write";
         return (
           <Accordion
-            key={item.name}
+            key={`accordion-${item.name}-${idx}`}
             className="accordion"
             sx={{ marginTop: 2 }}
           >
@@ -141,7 +153,7 @@ const MasterPage: React.FC = () => {
               <Box sx={{ marginBottom: 2 }}>
                 {item.inputs.map((input: any, index: number) => (
                   <TextField
-                    key={index}
+                    key={`tf-${item.name}-${index}`}
                     id={`${item.name}-${index}`}
                     label={input.name}
                     variant="outlined"
